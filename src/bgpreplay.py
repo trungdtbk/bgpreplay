@@ -406,8 +406,14 @@ DEFAULTS = {
 def check_peer_format(peers):
     results = []
     try:
+        if type(peers) == str:
+            peers = peers.split(' ')
         for peer in peers:
             ip, port, asn = re.split(':|/', peer)
+            try:
+                ip = str(ipaddress.ip_address(ip))
+            except:
+                ip = socket.gethostbyname(ip)
             results.append((ip, port, asn))
     except Exception as e:
         print('Incorrect argument format: %s' % e)
