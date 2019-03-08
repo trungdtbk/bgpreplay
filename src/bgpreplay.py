@@ -57,14 +57,12 @@ neighbor %s {
     }
 }
         """
-        _, config_file = tempfile.mkstemp()
-        _, sock_path = tempfile.mkstemp()
-        _, logfile = tempfile.mkstemp()
-        print('exabgp log is located at: %s' % logfile)
-        self.config_file = config_file
-        self.logfile = logfile
-        with open(config_file, 'w') as f:
-            config = CONFIG % sock_path
+        _, self.config_file = tempfile.mkstemp()
+        _, self.sock_path = tempfile.mkstemp()
+        _, self.logfile = tempfile.mkstemp()
+        print('exabgp log is located at: %s' % self.logfile)
+        with open(self.config_file, 'w') as f:
+            config = CONFIG % self.sock_path
             f.write('%s\n' % config)
             for peer in peers:
                 peer_ip, peer_port, peer_as = peer
@@ -76,7 +74,7 @@ neighbor %s {
                  'exabgp.log.level=INFO',
                  'exabgp.log.all=true',
                  'exabgp.log.destination=%s' % self.logfile,
-                 'exabgp', '%s' % config_file],
+                 'exabgp', '%s' % self.config_file],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         self.peers = peers
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -96,6 +94,8 @@ neighbor %s {
             self.exabgp.kill()
         if self.config_file:
             os.remove(self.config_file)
+        if self.sock_path:
+            os.remove(self.sock_path)
 
     def connected(self, timeout=60):
         """wait for connection to BGP peers."""
