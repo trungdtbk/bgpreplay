@@ -409,6 +409,8 @@ def check_peer_format(peers):
         if type(peers) == str:
             peers = peers.split(' ')
         for peer in peers:
+            if not peer:
+                continue
             ip, port, asn = re.split(':|/', peer)
             try:
                 ip = str(ipaddress.ip_address(ip))
@@ -416,7 +418,7 @@ def check_peer_format(peers):
                 ip = socket.gethostbyname(ip)
             results.append((ip, port, asn))
     except Exception as e:
-        print('Incorrect argument format: %s' % e)
+        print('Incorrect argument format: %s. Error: %s' % (peers, e))
         sys.exit(-1)
     return results
 
@@ -426,9 +428,11 @@ def check_nexthop_format(nexthops):
         if type(nexthops) == str:
             nexthops = nexthops.split(' ')
         for nexthop in nexthops:
+            if not nexthop:
+                return
             results.append(ipaddress.ip_address(u'%s' % nexthop))
     except Exception as e:
-        print('Incorrect argument format: %s' % e)
+        print('Incorrect argument format: %s. Error: %s' % (nexthops, e))
         sys.exit(-1)
     return results
 
