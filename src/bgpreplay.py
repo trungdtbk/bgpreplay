@@ -209,6 +209,13 @@ class YaBGPAgent(object):
                 if at_name == 'as_path':
                     at_value = [[1, at_value]]
                 if at_name in yabgp_attr_name_conversion:
+                    if at_name == 'origin':
+                        if at_value == 'igp':
+                            at_value = 0
+                        elif at_value == 'egp':
+                            at_value = 1
+                        else:
+                            at_value = 2
                     attributes[yabgp_attr_name_conversion[at_name]] = at_value
             yabgp_msg['attr'] = attributes
             yabgp_msg['nlri'] = nlri
