@@ -78,12 +78,17 @@ neighbor %s {
              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.peers = peers
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        success = False
         for _ in range(10):
             try:
                 self.socket.connect(sock_path)
+                success = True
                 break
             except:
                 time.sleep(1)
+        if not success:
+            print('ExaBGPAgent failed to start')
+            sys.exit(-1)
 
     def stop(self):
         """stop Exabgp running in the subprocess."""
@@ -159,14 +164,14 @@ class YaBGPAgent(object):
         peer_ip, peer_port, peer_as = peers[0]
         self.yabgp = subprocess.Popen([
             'yabgpd',
-            '--bgp-local_as ' + str(local_as),
-            '--bgp-remote_as ' + str(peer_as),
-            '--bgp-remote_addr ' + str(peer_ip),
-            '--bgp-remote_port ' + str(peer_port),
-            '--rest-bind_host 127.0.0.1',
-            '--rest-bind_port 5555'],
+            '--bgp-local_as', str(local_as),
+            '--bgp-remote_as', str(peer_as),
+            '--bgp-remote_addr', str(peer_ip),
+            '--bgp-remote_port', str(peer_port),
+            '--rest-bind_host', '127.0.0.1',
+            '--rest-bind_port', '5555'],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        print(self.yabgp.stdout.readline())
+        time.sleep(5)
         self.session = requests.Session()
         self.peer = None
 
