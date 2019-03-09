@@ -212,7 +212,7 @@ class YaBGPAgent(object):
             yabgp_msg['attr'] = attributes
             yabgp_msg['nlri'] = nlri
         withdraw = update.get('withdraw')
-        if 'withdraw' in data:
+        if withdraw:
             yabgp_msg['withdraw'] = withdraw
         return {self.peer['remote_addr']: yabgp_msg}
 
