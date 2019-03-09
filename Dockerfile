@@ -24,7 +24,8 @@ RUN git clone https://github.com/trungdtbk/yabgp
 RUN \
     cd yabgp \
     && pip install -I -U -r requirements.txt \
-    && python setup.py install 
+    && python setup.py install \
+    && cp bin/yabgpd /usr/local/bin/yabgpd
 
 COPY ./ /bgpreplay
 RUN \
