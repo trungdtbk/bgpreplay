@@ -160,6 +160,8 @@ class YaBGPAgent(object):
     """
     """
     yabgp = None
+    yabgp_port = 5555
+    yabgp_url = 'http://localhost:%d/v1' % yabgp_port
     def start(self, peers, local_ip, local_as):
         peer_ip, peer_port, peer_as = peers[0]
         self.yabgp = subprocess.Popen([
@@ -169,7 +171,7 @@ class YaBGPAgent(object):
             '--bgp-remote_addr', str(peer_ip),
             '--bgp-remote_port', str(peer_port),
             '--rest-bind_host', '127.0.0.1',
-            '--rest-bind_port', '5555'],
+            '--rest-bind_port', str(self.yabgp_port)],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         time.sleep(5)
         self.session = requests.Session()
@@ -180,7 +182,7 @@ class YaBGPAgent(object):
             self.yabgp.kill()
 
     def _get(self, path):
-        data = self.session.get('http://localhost/v1/' + path, auth=HTTPBasicAuth('admin', 'admin'))
+        data = self.session.get(self.yabgp_url + '/' + path, auth=HTTPBasicAuth('admin', 'admin'))
         return data.json()
 
     def connected(self):
@@ -219,7 +221,7 @@ class YaBGPAgent(object):
         for peer_ip, msg in yabgp_msg.items():
             headers = {'content-type':'application/json'}
             res = self.session.post(
-                    'http://localhost/v1/peer/%s/send/update' % peer_ip,
+                    '%s/peer/%s/send/update' % (self.yabgp_url, peer_ip),
                     data=json.dumps(msg), auth=HTTPBasicAuth('admin', 'admin'),
                     headers=headers)
             print(res)
