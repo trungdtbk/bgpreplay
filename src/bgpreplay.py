@@ -176,6 +176,7 @@ class YaBGPAgent(object):
         time.sleep(5)
         self.session = requests.Session()
         self.peer = None
+        self.headers = {'content-type':'application/json'}
 
     def stop(self):
         if self.yabgp:
@@ -219,11 +220,10 @@ class YaBGPAgent(object):
     def _send_yabgp(self, update):
         yabgp_msg = self._build_yabgp_msgs(update)
         for peer_ip, msg in yabgp_msg.items():
-            headers = {'content-type':'application/json'}
             res = self.session.post(
                     '%s/peer/%s/send/update' % (self.yabgp_url, peer_ip),
                     data=json.dumps(msg), auth=HTTPBasicAuth('admin', 'admin'),
-                    headers=headers)
+                    headers=self.headers)
             print(res)
 
     def send_update(self, update):
