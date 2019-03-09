@@ -58,8 +58,8 @@ neighbor %s {
 }
         """
         _, self.config_file = tempfile.mkstemp()
-        _, self.sock_path = tempfile.mkstemp()
         _, self.logfile = tempfile.mkstemp()
+        self.sock_path = os.path.join(tempfile.gettempdir(), 'bgpreplay.sock')
         print('exabgp log is located at: %s' % self.logfile)
         with open(self.config_file, 'w') as f:
             config = CONFIG % self.sock_path
