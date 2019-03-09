@@ -220,6 +220,8 @@ class YaBGPAgent(object):
     def _send_yabgp(self, update):
         yabgp_msg = self._build_yabgp_msgs(update)
         for peer_ip, msg in yabgp_msg.items():
+            if not msg:
+                continue
             res = self.session.post(
                     '%s/peer/%s/send/update' % (self.yabgp_url, peer_ip),
                     data=json.dumps(msg), auth=HTTPBasicAuth('admin', 'admin'),
