@@ -69,13 +69,13 @@ neighbor %s {
                 peer_config = PEER_CONFIG % (peer_ip, peer_port, peer_as, local_ip, local_as)
                 f.write('%s\n' % peer_config)
         self.exabgp = subprocess.Popen(
-                ['env',
-                 'exabgp.daemon.daemonize=false',
-                 'exabgp.log.level=INFO',
-                 'exabgp.log.all=true',
-                 'exabgp.log.destination=%s' % self.logfile,
-                 'exabgp', '%s' % self.config_file],
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            ['env', 'exabgp.tcp.bind=' + '0.0.0.0', 'exabgp.tcp.port=' + '179',
+             'exabgp.daemon.daemonize=false', 'exabgp.daemon.user=root',
+             'exabgp.log.level=INFO',
+             'exabgp.log.all=true',
+             'exabgp.log.destination=%s' % self.logfile,
+             'exabgp', self.config_file],
+             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.peers = peers
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         for _ in range(10):
