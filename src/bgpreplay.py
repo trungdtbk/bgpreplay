@@ -301,7 +301,7 @@ class BgpUpdateGenerator(object):
             if len(seq) >= num:
                 return random.sample(seq, num)
             else:
-                return seq
+                return list(seq)
         sent = 0
         update_per_sec = self.config['rate'] or 1
         update_per_sec = float(update_per_sec)
