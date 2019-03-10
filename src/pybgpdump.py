@@ -85,7 +85,11 @@ class BGPDump:
             elif at.type == dpkt.bgp.ORIGIN:
                 attr['origin'] = at.origin.type
             elif at.type == dpkt.bgp.AS_PATH:
-                attr['as_path'] = at.as_path.segments
+                attr['as_path'] = []
+                for seg in at.as_path.segments:
+                    if seg.type == dpkt.bgp.AS_SEQUENCE:
+                        attr['as_path'] = seg.path
+                        break
             elif at.type == dpkt.bgp.MULTI_EXIT_DISC:
                 attr['med'] = at.multi_exit_disc.value
             elif at.type == dpkt.bgp.LOCAL_PREF:
