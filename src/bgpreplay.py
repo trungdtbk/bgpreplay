@@ -455,7 +455,8 @@ def check_nexthop_format(nexthops):
 
 CHECKS = {
         'peers': check_peer_format,
-        'nexthop': check_nexthop_format
+        'nexthop': check_nexthop_format,
+        'local_as': int,
         }
 
 def main():
