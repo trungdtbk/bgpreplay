@@ -9,6 +9,7 @@ RUN apt-get install -y --no-install-recommends \
     iputils-ping \
     wget \
     unzip \
+    curl \
     git
 
 RUN apt-get install -y python-dev python3-setuptools
