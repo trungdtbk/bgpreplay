@@ -11,9 +11,12 @@ import traceback
 import ipaddress
 import socket
 import requests
+import logging
 from requests.auth import HTTPBasicAuth
 from oslo_config import cfg
 
+logger = logging.getLogger('bgpreplay')
+logger.setLevel(logging.INFO)
 
 class ConsoleAgent(object):
     """Print BGP messages to stdout."""
@@ -27,6 +30,7 @@ class ConsoleAgent(object):
         return True
 
     def send_update(self, update):
+        logger.info(str(update))
         print(update)
 
 
@@ -151,6 +155,7 @@ neighbor %s {
     def send_update(self, update):
         """send the update to client process in ExaBGP."""
         if self.socket:
+            logger.info(str(update))
             for statement in self._to_exabgp_format(update):
                 statement += '\r\n'
                 self.socket.sendall(statement.encode('utf-8'))
@@ -237,6 +242,7 @@ class YaBGPAgent(object):
 
     def send_update(self, update):
         if self.peer:
+            logger.info(str(update))
             self._send_yabgp(update)
 
 
@@ -400,6 +406,7 @@ def setup_cli_opts():
             help='A nexthop(s) to use for announcements. Default=IP address used to establish the peering'),
         cfg.IntOpt('local_as', help='Local ASN, default=65000'),
         cfg.StrOpt('local_ip', help='Local IP, default=127.0.0.1'),
+        cfg.StrOpt('logfile', help='Log file'),
     ]
     CONF.register_cli_opts(cli_opts)
     return CONF
@@ -470,6 +477,14 @@ def main():
             value = CHECKS[param](value)
         config[param] = value
     print(config)
+    logfile = getattr(conf, 'logfile') or os.environ.get('BGPREPLAY_LOGFILE', None)
+    if logfile:
+        print('The generated BGP updates are being recorded to: %s' % logfile)
+        hdl = logging.FileHandler(logfile)
+        hdl.setLevel(logging.INFO)
+        hdl.setFormatter(logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s'))
+        logger.addHandler(hdl)
+
     bgpgen = BgpUpdateGenerator(config)
     bgpgen.run()
 
