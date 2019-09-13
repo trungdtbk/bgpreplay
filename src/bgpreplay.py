@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import atexit
 import sys
 import os
 import re
@@ -380,6 +381,8 @@ class BgpUpdateGenerator(object):
                 traceback.print_exc()
                 sys.exit(-1)
 
+    def cleanup(self):
+        self.agent.stop()
 
 def setup_cli_opts():
     CONF = cfg.CONF
@@ -486,6 +489,7 @@ def main():
         logger.addHandler(hdl)
 
     bgpgen = BgpUpdateGenerator(config)
+    atexit.register(bgpgen.cleanup)
     bgpgen.run()
 
 if __name__ == '__main__':
