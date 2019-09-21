@@ -273,6 +273,8 @@ class BgpUpdateGenerator(object):
                 self._send_update_from_source(source_type='mrt_file', filename=self.config['mrt'])
             elif self.config['live']:
                 self._send_update_from_source(source_type='live', collector=self.config['live'])
+            elif self.config['text']:
+                self._send_update_from_text_file(self.config['text'], self.config['count'])
             else:
                 self._send_random_update()
             self.agent.stop()
@@ -284,6 +286,50 @@ class BgpUpdateGenerator(object):
         if not self.config['nexthop']:
             return None
         return str(random.choice(self.config['nexthop']))
+
+    def _send_update_from_text_file(self, fname, count=0):
+        """
+        time different from the previous
+        delay(ms),update,prefix,nexthop,local_pref,as_path
+        0,annouce,1.0.0.0/24,10.0.0.1,None,1 2 3
+        10,withdraw,2.0.0.0/24,10.0.0.1,120,1 2 3
+        """
+        sent = 0
+        with open(fname, 'r') as f:
+            for line in f:
+                try:
+                    if count and sent == count:
+                        break
+                    delay, update, prefix, nexthop, localpref, aspath = line.split(',')
+                    delay = float(delay)
+                    prefix = str(ipaddress.ip_network(prefix))
+                    if update == 'announce':
+                        nexthop = str(ipaddress.ip_address(nexthop))
+                        localpref = int(localpref)
+                        aspath = list(map(int, aspath.split(' ')))
+                        nlri = [ prefix ]
+                        withdraw = []
+                    else:
+                        nexthop = None
+                        localpref = None
+                        aspath = []
+                        nlri = []
+                        withdraw = [ prefix ]
+                    attr = {
+                            'nexthop': nexthop,
+                            'as_path': aspath,
+                            'local_pref': localpref}
+                    update = {
+                            'attr': attr,
+                            'nlri': nlri,
+                            'withdraw': withdraw,
+                            }
+                    time.sleep(delay/1000)
+                    self.agent.send_update(update)
+                    sent += 1
+                except Exception as e:
+                    print(e)
+
 
     def _send_random_update(self):
         """generate updates randomly."""
@@ -390,6 +436,7 @@ def setup_cli_opts():
         cfg.MultiStrOpt('peers', short='p',
             help='one or more peers to send update to. It takes format address:port/asn, ex: 127.0.0.1:179/65000'),
         cfg.StrOpt('mrt', help='BGP MRT file to replay'),
+        cfg.StrOpt('text', help='Generate BGP updates from a text file'),
         cfg.StrOpt('live', help='Replay BGP updates from live feed (a valid CAIDA collector, ex:rrc00)'),
         cfg.BoolOpt('rand', help='Randomly generate BGP updates. It is enabled by default if file or live is not specified'),
         cfg.StrOpt('agent', short='a',
@@ -416,6 +463,7 @@ def setup_cli_opts():
 
 DEFAULTS = {
         'live': None,
+        'text': None,
         'mrt': None,
         'rand': True,
         'peers': ['127.0.0.1:9179/65000'],
