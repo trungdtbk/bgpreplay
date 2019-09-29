@@ -19,6 +19,12 @@ from oslo_config import cfg
 logger = logging.getLogger('bgpreplay')
 logger.setLevel(logging.INFO)
 
+WELLKNOWN_DEFAULTS = {
+    'as_path': [1],
+    'origin': 2,
+    'nexthop': '127.0.0.1',
+}
+
 class ConsoleAgent(object):
     """Print BGP messages to stdout."""
     def start(self, *args):
@@ -242,6 +248,10 @@ class YaBGPAgent(object):
             print(res)
 
     def send_update(self, update):
+        # verify if well-known, mandatory attrbiutes exist
+        for attr, value in WELLKNOWN_DEFAULTS.items():
+            if attr not in update['attr']:
+                update['attr'][attr] = value
         if self.peer:
             logger.info(str(update))
             self._send_yabgp(update)
